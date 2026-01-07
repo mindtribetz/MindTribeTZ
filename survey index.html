@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mind Tribe TZ Survey - Innocent Yohana Nkwabi</title>
+<style>
+  body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#fff;margin:0;padding:20px;min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .container{background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border-radius:20px;padding:30px;max-width:500px;width:100%;box-shadow:0 15px 35px rgba(0,0,0,0.6);text-align:center}
+  h1{font-size:1.9em;margin-bottom:8px;color:#00ff88}
+  .creator{font-size:1.3em;margin:15px 0;color:#ffd700;font-weight:bold}
+  .subtitle{opacity:0.9;margin-bottom:30px}
+  .question{font-size:1.4em;margin:30px 0;min-height:60px}
+  textarea,input[type=text]{width:100%;padding:15px;margin:15px 0;border:none;border-radius:12px;background:rgba(255,255,255,0.2);color:white;font-size:1.1em}
+  textarea{min-height:120px;resize:vertical}
+  button{background:#00ff88;color:#000;border:none;padding:15px 30px;font-size:1.2em;border-radius:50px;cursor:pointer;margin:10px;font-weight:bold}
+  button:hover{background:#00cc66}
+  .hidden{display:none}
+  .progress{margin:20px 0;font-size:0.9em}
+  .lang-btn{background:#ffd700;color:#000;position:fixed;top:15px;right:15px;padding:10px 15px;border-radius:50px;z-index:999}
+</style>
+</head>
+<body>
+
+<button class="lang-btn" onclick="toggleLang()">EN ↔ SW</button>
+
+<div class="container">
+  <h1>Mind Tribe TZ</h1>
+  <div class="creator">
+    Imeanzishwa na Kuongozwa na<br><strong>Innocent Yohana Nkwabi</strong><br>Dar es Salaam, Tanzania
+  </div>
+
+  <p class="subtitle">Sauti za mtaa — zimekusanywa na Innocent Yohana Nkwabi</p>
+
+  <div id="intro">
+    <p>Tunakusanya ukweli mbichi kuhusu nguvu, pesa, AI na maisha ya baadaye — moja kwa moja kutoka kwa Watanzania.</p>
+    <button onclick="startSurvey()">Anza Kusema ➤</button>
+  </div>
+
+  <div id="survey" class="hidden">
+    <div class="progress">Swali <span id="current">1</span> kati ya <span id="total">9</span></div>
+    <div class="question" id="questionText"></div>
+    
+    <textarea id="answerBox" placeholder="Andika ukweli wako hapa..."></textarea>
+    <input type="text" id="answerShort" class="hidden" placeholder="Jibu lako...">
+
+    <button onclick="nextQuestion()">Inayofuata ➤</button>
+    <button onclick="previousQuestion()">◄ Rudi</button>
+  </div>
+
+  <div id="result" class="hidden">
+    <h2>Sauti yako imerekodiwa!</h2>
+    <textarea id="finalOutput" readonly style="height:340px;"></textarea><br><br>
+    <button onclick="copyResults()">Nakili</button>
+    <button onclick="downloadResults()">Pakua</button>
+    <button onclick="startSurvey()">Anza Tena</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {en:"Your name or nickname (or stay anonymous):", sw:"Jina lako au lahaja (au kaa bila kujulikana):"},
+  {en:"Where in Tanzania are you right now?", sw:"Uko wapi Tanzania sasa hivi?"},
+  {en:"In your own words: Who really runs the world today — money or contracts?", sw:"Kwa maneno yako: Nani anayemudu dunia leo — pesa au mikataba?"},
+  {en:"Do you think AI will make normal people richer or poorer in the next 10 years? Why?", sw:"Unafikiri AI itawafanya watu wa kawaida matajiri zaidi au masikini zaidi katika miaka 10 ijayo? Kwa nini?"},
+  {en:"If Elon Musk came to Dar tomorrow, what ONE question would you ask him?", sw:"Kama Elon Musk angekuja Dar kesho, ni swali GANI MOJA ungemuuliza?"},
+  {en:"What is the biggest lie the youth in Tanzania are being told right now?", sw:"Ni uwongo gani mkubwa vijana wa Tanzania wanaambiwa sasa hivi?"},
+  {en:"If you had unlimited internet tomorrow (Starlink), what would you do with it?", sw:"Kama ungepata internet isiyo na kikomo kesho, ungefanya nini nayo?"},
+  {en:"Contracts = real power. Give one example from real life.", sw:"Mikataba = nguvu ya kweli. Toa mfano mmoja wa maisha halisi."},
+  {en:"Final message to the Mind Tribe worldwide:", sw:"Ujumbe wa mwisho kwa Mind Tribe duniani kote:"}
+];
+
+let currentQuestion = 0;
+let answers = [];
+let isSwahili = true;
+
+function toggleLang(){
+  isSwahili = !isSwahili;
+  document.querySelector('.lang-btn').textContent = isSwahili ? "EN ↔ SW" : "SW ↔ EN";
+  document.querySelector('.creator').innerHTML = "Imeanzishwa na Kuongozwa na<br><strong>Innocent Yohana Nkwabi</strong><br>Dar es Salaam, Tanzania";
+  document.querySelector('.subtitle').textContent = isSwahili ? "Sauti za mtaa — zimekusanywa na Innocent Yohana Nkwabi" : "Real voices from the streets — collected by Innocent Yohana Nkwabi";
+  document.querySelector('#intro p').textContent = isSwahili ? "Tunakusanya ukweli mbichi kuhusu nguvu, pesa, AI na maisha ya baadaye — moja kwa moja kutoka kwa Watanzania." : "We are collecting raw truth about power, money, AI and the future — straight from Tanzanians.";
+  document.querySelector('#intro button').textContent = isSwahili ? "Anza Kusema ➤" : "Start Speaking ➤";
+  if(!document.getElementById('survey').classList.contains('hidden')) showQuestion();
+}
+function startSurvey(){
+  document.getElementById('intro').classList.add('hidden');
+  document.getElementById('survey').classList.remove('hidden');
+  answers=[]; currentQuestion=0; showQuestion();
+}
+function showQuestion(){
+  document.getElementById('current').textContent = currentQuestion+1;
+  document.getElementById('total').textContent = questions.length;
+  document.getElementById('questionText').textContent = isSwahili ? questions[currentQuestion].sw : questions[currentQuestion].en;
+  document.getElementById('answerBox').placeholder = isSwahili ? "Andika ukweli wako hapa..." : "Type your truth here...";
+  document.getElementById('answerShort').placeholder = isSwahili ? "Jibu lako..." : "Your answer...";
+
+  if(currentQuestion<=1){
+    document.getElementById('answerShort').classList.remove('hidden');
+    document.getElementById('answerBox').classList.add('hidden');
+  }else{
+    document.getElementById('answerShort').classList.add('hidden');
+    document.getElementById('answerBox').classList.remove('hidden');
+  }
+  const prev = answers[currentQuestion];
+  if(prev!==undefined){
+    if(currentQuestion<=1) document.getElementById('answerShort').value = prev;
+    else document.getElementById('answerBox').value = prev;
+  }else{
+    document.getElementById('answerShort').value='';
+    document.getElementById('answerBox').value='';
+  }
+}
+function nextQuestion(){
+  let answer = (currentQuestion<=1) ? document.getElementById('answerShort').value.trim() : document.getElementById('answerBox').value.trim();
+  answers[currentQuestion] = answer || "(hakuna jibu)";
+  if(currentQuestion < questions.length-1){ currentQuestion++; showQuestion(); }
+  else showResults();
+}
+function previousQuestion(){
+  if(currentQuestion>0){
+    let answer = (currentQuestion<=1) ? document.getElementById('answerShort').value.trim() : document.getElementById('answerBox').value.trim();
+    answers[currentQuestion] = answer || "(hakuna jibu)";
+    currentQuestion--; showQuestion();
+  }
+}
+function showResults(){
+  document.getElementById('survey').classList.add('hidden');
+  document.getElementById('result').classList.remove('hidden');
+  
+  let output = "=== MIND TRIBE TZ SURVEY ===\n";
+  output += "Imeanzishwa na: Innocent Yohana Nkwabi\n";
+  output += "Mahali: Dar es Salaam, Tanzania\n";
+  output += "Tarehe: " + new Date().toLocaleString('sw') + "\n\n";
+  for(let i=0;i<questions.length;i++){
+    output += (i+1) + ". " + (isSwahili ? questions[i].sw : questions[i].en) + "\n";
+    output += "→ " + answers[i] + "\n\n";
+  }
+  output += "Asante kwa sauti yako.\n#MindTribeTZ #InnocentYohanaNkwabi";
+  document.getElementById('finalOutput').value = output;
+}
+function copyResults(){
+  const t=document.getElementById('finalOutput'); t.select(); document.execCommand('copy');
+  alert(isSwahili?"Imenakiliwa! Bandika popote sasa":"Copied! Paste anywhere now");
+}
+function downloadResults(){
+  const blob=new Blob([document.getElementById('finalOutput').value],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url;
+  a.download="MindTribeTZ_Survey_"+Date.now()+".txt"; a.click();
+}
+</script>
+</body>
+</html>
